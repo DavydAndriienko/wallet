@@ -73,7 +73,7 @@ and open the template in the editor.
                         transactions = '<div class="alert alert-dismissible alert-warning mt-1 mb-1"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><h4 class="alert-heading">' + err.message + '</h4></div>';
                         $('.transactions').html(transactions);
                     }
-                }) 
+                })
             }
 
             function SetCookies() {
@@ -100,7 +100,7 @@ and open the template in the editor.
             };
             $(document).on('submit', '#reg-form', function () {
                 var form_data = $(this).serializeObject();
-                form_data['day_limit']=parseFloat(form_data['day_limit']);
+                form_data['day_limit'] = parseFloat(form_data['day_limit']);
                 form_data = JSON.stringify(form_data);
                 $.ajax({
                     url: "/wallet/api/user/create.php",
@@ -122,9 +122,9 @@ and open the template in the editor.
             });
             $(document).on('submit', '#transaction-form', function () {
                 var form_data = $(this).serializeObject();
-                form_data['amount']=parseFloat(form_data['amount']);
+                form_data['amount'] = parseFloat(form_data['amount']);
                 form_data['amount'] *= form_data['type'];
-                form_data['amount']=form_data['amount'].toFixed(2);
+                form_data['amount'] = form_data['amount'].toFixed(2);
                 form_data['amount'] *= currency_arr[form_data['currency'] - 1]['rate'];
                 form_data = JSON.stringify(form_data);
                 $.ajax({
@@ -146,13 +146,22 @@ and open the template in the editor.
             $(document).on('submit', '#get_per_date', function () {
                 var num = 0;
                 var transactions = '<table class="table table-hover"><thead><tr><th scope="col">#</th><th scope="col">Сумма</th><th scope="col">Валюта</th><th scope="col">Дата операції</th><th scope="col">Опис</th></tr></thead><tbody>';
-                $.getJSON("/wallet/api/transaction/read_period.php?id=" + user_id + "&from=" + $("#from").val() + "&to=" + $("#to").val(), function (data) {
-                    $.each(data.records, function (key, val) {
-                        transactions += ' <tr class="table-active"><td>' + ++num + '</td><td>' + val.amount * currency_arr[val.currency - 1]['rate'] + '</td><td>' + currency_arr[val.currency - 1]['name'] + '</td><td>' + val.date + '</td><td>' + val.description + '</td></tr>';
-                    });
-                    transactions += '</tbody></table>';
-                    $('.transactions').html(transactions);
-                });
+                $.ajax({
+                    dataType: "json",
+                    url: "/wallet/api/transaction/read_period.php?id=" + user_id + "&from=" + $("#from").val() + "&to=" + $("#to").val(),
+                    success: function (data) {
+                        $.each(data.records, function (key, val) {
+                            transactions += ' <tr class="table-active"><td>' + ++num + '</td><td>' + val.amount * currency_arr[val.currency - 1]['rate'] + '</td><td>' + currency_arr[val.currency - 1]['name'] + '</td><td>' + val.date + '</td><td>' + val.description + '</td></tr>';
+                        });
+                        transactions += '</tbody></table>';
+                        $('.transactions').html(transactions);
+                    },
+                    error: function (xhr, resp, text) {
+                        var err = eval("(" + xhr.responseText + ")");
+                        transactions = '<div class="alert alert-dismissible alert-warning mt-1 mb-1"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><h4 class="alert-heading">' + err.message + '</h4></div>';
+                        $('.transactions').html(transactions);
+                    }
+                })
                 return false;
             });
             $(function () {
